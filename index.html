@@ -18,7 +18,7 @@
 <body>
   <div class="container">
     <h1 class="mb-4"><i class="fas fa-file-alt"></i> Formulário de Inventário</h1>
-    <form id="inventarioForm">
+    <form id="inventarioForm" enctype="multipart/form-data" method="POST" action="https://formspree.io/f/your_form_id">
 
       <!-- Falecido -->
       <fieldset>
@@ -41,19 +41,19 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Certidão de Óbito</label>
-          <input type="file" class="form-control" required>
+          <input type="file" name="certidao-obito" class="form-control" required>
         </div>
         <div class="mb-3">
           <label class="form-label">RG ou CNH do Falecido</label>
-          <input type="file" class="form-control">
+          <input type="file" name="rg-falecido" class="form-control">
         </div>
         <div class="mb-3">
           <label class="form-label">Certidão de Nascimento/Casamento</label>
-          <input type="file" class="form-control">
+          <input type="file" name="certidao-falecido" class="form-control">
         </div>
         <div class="mb-3">
           <label class="form-label">RG ou CNH do Cônjuge</label>
-          <input type="file" class="form-control">
+          <input type="file" name="rg-conjuge" class="form-control">
         </div>
       </fieldset>
 
@@ -80,43 +80,43 @@
         <legend><i class="fas fa-gavel"></i> Dados do Advogado</legend>
         <div class="mb-3">
           <label class="form-label">Nome</label>
-          <input type="text" class="form-control" required>
+          <input type="text" name="nome-advogado" class="form-control" required>
         </div>
         <div class="mb-3">
           <label class="form-label">Estado Civil</label>
-          <input type="text" class="form-control">
+          <input type="text" name="estado-civil-advogado" class="form-control">
         </div>
         <div class="mb-3">
           <label class="form-label">Número da OAB e UF</label>
-          <input type="text" class="form-control" required>
+          <input type="text" name="oab" class="form-control" required>
         </div>
         <div class="mb-3">
           <label class="form-label">CPF</label>
-          <input type="text" class="form-control" required>
+          <input type="text" name="cpf-advogado" class="form-control" required>
         </div>
         <div class="mb-3">
           <label class="form-label">Endereço do Escritório</label>
-          <textarea class="form-control" rows="3"></textarea>
+          <textarea name="endereco-escritorio" class="form-control" rows="3"></textarea>
         </div>
       </fieldset>
 
-      <button type="submit" class="btn btn-success mt-4"><i class="fas fa-save"></i> Salvar Inventário</button>
+      <button type="submit" class="btn btn-success mt-4"><i class="fas fa-paper-plane"></i> Enviar Inventário</button>
     </form>
   </div>
 
   <script>
     const herdeiroTemplate = `
       <div class="border rounded p-3 mb-3">
-        <label>Nome do Herdeiro<input type="text" class="form-control" placeholder="Ex: Maria Silva" required></label>
-        <label>RG ou CNH (upload)<input type="file" class="form-control"></label>
-        <label>Certidão de nascimento/casamento<input type="file" class="form-control"></label>
-        <label>RG ou CNH do cônjuge<input type="file" class="form-control"></label>
+        <label>Nome do Herdeiro<input type="text" name="herdeiro[]" class="form-control" placeholder="Ex: Maria Silva" required></label>
+        <label>RG ou CNH (upload)<input type="file" name="rg-herdeiro[]" class="form-control"></label>
+        <label>Certidão de nascimento/casamento<input type="file" name="certidao-herdeiro[]" class="form-control"></label>
+        <label>RG ou CNH do cônjuge<input type="file" name="rg-conjuge-herdeiro[]" class="form-control"></label>
       </div>`;
 
     const bemTemplate = `
       <div class="border rounded p-3 mb-3">
         <label>Tipo do Bem
-          <select class="form-select" required>
+          <select class="form-select" name="tipo-bem[]" required>
             <option value="">Selecione</option>
             <option value="urbano">Imóvel Urbano</option>
             <option value="rural">Imóvel Rural</option>
@@ -128,11 +128,11 @@
             <option value="outros">Outros Bens</option>
           </select>
         </label>
-        <label>Descrição e Documento<input type="file" class="form-control"></label>
-        <label>Valor do Bem (R$)<input type="number" class="form-control" step="0.01"></label>
-        <label>Fração do de cujus (%)<input type="number" class="form-control" step="0.01"></label>
+        <label>Descrição e Documento<input type="file" name="doc-bem[]" class="form-control"></label>
+        <label>Valor do Bem (R$)<input type="number" name="valor-bem[]" class="form-control" step="0.01"></label>
+        <label>Fração do de cujus (%)<input type="number" name="fracao-bem[]" class="form-control" step="0.01"></label>
         <label>Há meação da viúva?
-          <select class="form-select">
+          <select class="form-select" name="meacao-bem[]">
             <option value="sim">Sim</option>
             <option value="nao">Não</option>
           </select>
@@ -158,20 +158,6 @@
       document.getElementById('prazo-confirmacao').value = prazoConfirmacao.toLocaleDateString();
       document.getElementById('prazo-desconto').value = prazoDesconto.toLocaleDateString();
     }
-
-    // Salvar localmente
-    const form = document.getElementById('inventarioForm');
-    form.addEventListener('input', () => {
-      localStorage.setItem('inventarioData', JSON.stringify(Object.fromEntries(new FormData(form))));
-    });
-
-    window.addEventListener('load', () => {
-      const data = JSON.parse(localStorage.getItem('inventarioData') || '{}');
-      for (const [key, value] of Object.entries(data)) {
-        const field = form.elements[key];
-        if (field) field.value = value;
-      }
-    });
   </script>
 </body>
 </html>
