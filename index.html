@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulário de Inventário</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { padding: 20px; font-size: 16px; }
+    fieldset { margin-top: 30px; border: 1px solid #ccc; padding: 20px; border-radius: 10px; }
+    legend { font-size: 1.25rem; font-weight: bold; }
+    .form-control:invalid { border-color: #dc3545; }
+    .form-text.error { color: #dc3545; display: none; }
+    .form-control:invalid ~ .form-text.error { display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4"><i class="fas fa-file-alt"></i> Formulário de Inventário</h1>
+    <form id="inventarioForm">
+
+      <!-- Falecido -->
+      <fieldset>
+        <legend><i class="fas fa-user"></i> Falecido e Cônjuge</legend>
+        <div class="mb-3">
+          <label class="form-label">Nome do Falecido</label>
+          <input type="text" name="nome-falecido" class="form-control" required placeholder="Ex: João da Silva">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Data do Óbito</label>
+          <input type="date" id="data-obito" name="data-obito" class="form-control" required onchange="calcularPrazos()">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Prazo para confirmar o ITCMD (60 dias)</label>
+          <input type="text" id="prazo-confirmacao" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Prazo para recolher com desconto (90 dias)</label>
+          <input type="text" id="prazo-desconto" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Certidão de Óbito</label>
+          <input type="file" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">RG ou CNH do Falecido</label>
+          <input type="file" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Certidão de Nascimento/Casamento</label>
+          <input type="file" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">RG ou CNH do Cônjuge</label>
+          <input type="file" class="form-control">
+        </div>
+      </fieldset>
+
+      <!-- Herdeiros -->
+      <fieldset>
+        <legend><i class="fas fa-users"></i> Herdeiros</legend>
+        <div id="herdeiros-container"></div>
+        <button type="button" class="btn btn-outline-primary mt-3" onclick="addHerdeiro()">
+          <i class="fas fa-plus"></i> Adicionar Herdeiro
+        </button>
+      </fieldset>
+
+      <!-- Bens -->
+      <fieldset>
+        <legend><i class="fas fa-boxes"></i> Bens</legend>
+        <div id="bens-container"></div>
+        <button type="button" class="btn btn-outline-primary mt-3" onclick="addBem()">
+          <i class="fas fa-plus"></i> Adicionar Bem
+        </button>
+      </fieldset>
+
+      <!-- Advogado -->
+      <fieldset>
+        <legend><i class="fas fa-gavel"></i> Dados do Advogado</legend>
+        <div class="mb-3">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Estado Civil</label>
+          <input type="text" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Número da OAB e UF</label>
+          <input type="text" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">CPF</label>
+          <input type="text" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Endereço do Escritório</label>
+          <textarea class="form-control" rows="3"></textarea>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="btn btn-success mt-4"><i class="fas fa-save"></i> Salvar Inventário</button>
+    </form>
+  </div>
+
+  <script>
+    const herdeiroTemplate = `
+      <div class="border rounded p-3 mb-3">
+        <label>Nome do Herdeiro<input type="text" class="form-control" placeholder="Ex: Maria Silva" required></label>
+        <label>RG ou CNH (upload)<input type="file" class="form-control"></label>
+        <label>Certidão de nascimento/casamento<input type="file" class="form-control"></label>
+        <label>RG ou CNH do cônjuge<input type="file" class="form-control"></label>
+      </div>`;
+
+    const bemTemplate = `
+      <div class="border rounded p-3 mb-3">
+        <label>Tipo do Bem
+          <select class="form-select" required>
+            <option value="">Selecione</option>
+            <option value="urbano">Imóvel Urbano</option>
+            <option value="rural">Imóvel Rural</option>
+            <option value="veiculo">Veículo</option>
+            <option value="banco">Saldo Bancário</option>
+            <option value="cooperativa">Crédito de Cooperativa</option>
+            <option value="previdencia">Benefício Previdenciário</option>
+            <option value="empresa">Empresa</option>
+            <option value="outros">Outros Bens</option>
+          </select>
+        </label>
+        <label>Descrição e Documento<input type="file" class="form-control"></label>
+        <label>Valor do Bem (R$)<input type="number" class="form-control" step="0.01"></label>
+        <label>Fração do de cujus (%)<input type="number" class="form-control" step="0.01"></label>
+        <label>Há meação da viúva?
+          <select class="form-select">
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+          </select>
+        </label>
+      </div>`;
+
+    function addHerdeiro() {
+      document.getElementById('herdeiros-container').insertAdjacentHTML('beforeend', herdeiroTemplate);
+    }
+
+    function addBem() {
+      document.getElementById('bens-container').insertAdjacentHTML('beforeend', bemTemplate);
+    }
+
+    function calcularPrazos() {
+      const dataObito = document.getElementById('data-obito').value;
+      if (!dataObito) return;
+      const data = new Date(dataObito);
+      const prazoConfirmacao = new Date(data);
+      prazoConfirmacao.setDate(prazoConfirmacao.getDate() + 60);
+      const prazoDesconto = new Date(data);
+      prazoDesconto.setDate(prazoDesconto.getDate() + 90);
+      document.getElementById('prazo-confirmacao').value = prazoConfirmacao.toLocaleDateString();
+      document.getElementById('prazo-desconto').value = prazoDesconto.toLocaleDateString();
+    }
+
+    // Salvar localmente
+    const form = document.getElementById('inventarioForm');
+    form.addEventListener('input', () => {
+      localStorage.setItem('inventarioData', JSON.stringify(Object.fromEntries(new FormData(form))));
+    });
+
+    window.addEventListener('load', () => {
+      const data = JSON.parse(localStorage.getItem('inventarioData') || '{}');
+      for (const [key, value] of Object.entries(data)) {
+        const field = form.elements[key];
+        if (field) field.value = value;
+      }
+    });
+  </script>
+</body>
+</html>
